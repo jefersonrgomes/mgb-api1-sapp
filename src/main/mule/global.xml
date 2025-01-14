@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd  http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd">
+    <global-property doc:name="Global Property" doc:id="0255167d-dcae-4ace-9d30-382193d706dc" name="env" value="local" />
+    <configuration-properties doc:name="Configuration properties" doc:id="3a3917f3-55dc-4696-a958-50c16e883570" file="config_${env}.yaml" />
+    <configuration doc:name="Configuration" doc:id="fad066d2-cab4-4cb7-a116-516a7ce922c2" defaultErrorHandler-ref="global-error_handler" />
+    <apikit:config name="mgb-api1-sapi-config" api="resource::2564fa18-c0b0-424d-a4f0-68ff3a6579ea:mgb-api1-sapi:1.0.6:raml:zip:mgb-api1-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <http:request-config name="HTTP_Request_mgb-api2-papp_configuration" doc:name="HTTP Request configuration" doc:id="8652e468-fcfe-4810-8c02-4a25b88e65df">
+        <http:request-connection host="${mgb-api2-papp.host}" port="${mgb-api2-papp.port}" connectionIdleTimeout="${mgb-api2-papp.timeout}" />
+    </http:request-config>
+    <http:listener-config name="HTTP_Listener_mgb-api1-sapp-config" doc:name="HTTP Listener config" doc:id="b566172f-90d4-46e1-b132-726c69aebf0b">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="${http.timeout}" />
+    </http:listener-config>
+    <amqp:config name="AMQP_mgb-mq-rabbitmq_Config" doc:name="AMQP Config" doc:id="762f0d3f-b7b7-4f5b-a483-bfd2c55961f8">
+        <amqp:connection host="${mgb-mq-rabbitmq.host}" port="${mgb-mq-rabbitmq.port}" username="${mgb-mq-rabbitmq.user}" password="${mgb-mq-rabbitmq.pass}" />
+    </amqp:config>
+    <http:request-config name="HTTP_Request_Fipe_configuration" doc:name="HTTP Request configuration" doc:id="a6945880-1fcd-4c27-8d60-2b74581757e8">
+        <http:request-connection host="${fipe.host}" protocol="HTTPS" />
+    </http:request-config>
+    <db:config name="MSSQL_Database_Config" doc:name="Database Config" doc:id="20ffff33-2e5d-4da7-8219-a50d75232d00">
+        <db:mssql-connection host="${mgb-db-mssql.host}" port="${mgb-db-mssql.port}" user="sa" password="${mgb-db-mssql.pass}" />
+    </db:config>
+</mule>

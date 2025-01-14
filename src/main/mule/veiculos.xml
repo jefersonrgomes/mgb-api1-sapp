@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd">
+
+	<sub-flow name="get-marcas-carga-inicial" doc:id="410e0c96-e0cb-41a0-a733-a930f683491e" >
+		<logger level="INFO" doc:name="Logger-get-marcas-entrada" doc:id="3776fe03-d675-4298-b412-b5d8f8640296" message='#["******************************* GET MARCAS - ENTRADA *******************************"]'/>
+		<db:execute-script doc:name="drop-and-create-table-veiculos" doc:id="5471faa5-d123-4e6c-9e8f-025c5da9f873" config-ref="MSSQL_Database_Config">
+			<db:sql ><![CDATA[DROP TABLE Veiculos;
+
+CREATE TABLE Veiculos ( 
+VeiculoId INT IDENTITY(1,1) PRIMARY KEY, 
+TipoVeiculo INT, 
+Valor VARCHAR(20), 
+Marca VARCHAR(50), 
+CodigoModelo VARCHAR(100),
+NomeModelo VARCHAR(100),
+AnoModelo VARCHAR(50), 
+Combustivel VARCHAR(20), 
+CodigoFipe VARCHAR(20), 
+MesReferencia VARCHAR(20), 
+SiglaCombustivel CHAR(1) );]]></db:sql>
+		</db:execute-script>
+		<ee:cache doc:name="Cache" doc:id="d6f5299d-a700-4d1f-89cd-d4718f4450bb">
+				<http:request method="GET" doc:name="get-marcas-fipe" doc:id="0f2a532f-4ee2-4eeb-9470-9002f6d94a6a" config-ref="HTTP_Request_Fipe_configuration" path="${fipe.path}${fipe.endpoints.marcas}">
+					<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-Subscription-Token" : p('fipe.token')
+}]]]></http:headers>
+					<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"tipo-veiculo" : "carros"
+}]]]></http:uri-params>
+				</http:request>
+			</ee:cache>
+		<amqp:publish doc:name="Publish" doc:id="550ad068-a9aa-470a-8ec0-6d38b16809e7" config-ref="AMQP_mgb-mq-rabbitmq_Config" exchangeName="ex-mgb-post-marcas">
+			<amqp:routing-keys >
+				<amqp:routing-key value="1" />
+			</amqp:routing-keys>
+		</amqp:publish>
+		<ee:transform doc:name="payload saida" doc:id="000e617c-61bb-47a6-a87d-1de312d11e5f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Status": "Requisição enviada com sucesso",
+  "mBroker":"RabbitMQ",
+  "data": now(),
+  "exchange": "ex-mgb-post-marcas-modelo1",
+  "queue": "queue-post-marcas-modelo1"
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger-get-marcas-saida" doc:id="b2f93f32-40c6-4d19-9461-908883080a42" message='#["******************************* GET MARCAS - SAIDA *******************************"]' />
+	</sub-flow>
+	<sub-flow name="get-marcas-db" doc:id="bc37152f-a929-4390-a0f4-a52cc92ed7fe">
+		<logger level="INFO" doc:name="Logger-get-marcas-db-entrada" doc:id="e9f03796-78dc-4cdf-8d58-58b6fe22320f" message='#["******************************* GET MARCAS NO BANDO DE DADOS SQL LOCAL - ENTRADA *******************************"]' />
+		<set-payload value='#[%dw 2.0&#10;output text/plain&#10;---&#10;"SELECT * FROM Veiculos WHERE Marca = :marca"]' doc:name="db-select-marcas-sql" doc:id="e26cca83-bb8f-4fa8-9719-a36882f406dc" />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;attributes.queryParams.marca]" doc:name="marca" doc:id="7bdab3d3-9531-4e92-a22b-30926b96fc1b" variableName="marca" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"marca": vars.marca&#10;}]' doc:name="inputParams" doc:id="60e8eb62-2ab2-4260-ad82-ee8f191b117a" variableName="inputParams" />
+		<flow-ref doc:name="dinamic-select-db-sql-Sub_Flow" doc:id="0e2c09d9-9d9f-4371-9ce1-e993cb2536e3" name="dinamic-select-db-sql-Sub_Flow" />
+		<ee:transform doc:name="payload saida" doc:id="f955750e-f51b-4d3e-99b7-e17215cc67a3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger-get-marcas-db-saida" doc:id="1ded00ea-39f6-41c1-9a46-f6a4755fbc71" message='#["******************************* GET MARCAS NO BANDO DE DADOS SQL LOCAL - SAIDA *******************************"]' />
+	</sub-flow>
+	<sub-flow name="dinamic-select-db-sql-Sub_Flow" doc:id="fd419478-5cfb-4d05-9520-97efbf7300f2">
+		<try doc:name="Try" doc:id="bed86af7-eb98-431f-b9d3-5ea1a8ccef23">
+			<db:select doc:name="Select-marcas" doc:id="60f54cc9-559e-49a3-87f0-fd7ba3b71b5c" config-ref="MSSQL_Database_Config">
+			<db:sql><![CDATA[#[payload]]]></db:sql>
+			<db:input-parameters><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+		</db:select>
+			<error-handler>
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d38b8a28-f095-48e2-bf76-c72b41fad48b" type="ANY">
+					<ee:transform doc:name="db-error" doc:id="14b46c36-b35b-4ab5-82b3-a5b77f3d7da3">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ErrorType": error.errorType.identifier,
+	"ErrorDescription": error.description,
+	"EventID": correlationId,
+	("Custom": error.errorMessage.payload)
+	
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger-error-propagate" doc:id="0d4d1422-7607-41d2-b3d4-717e68a20a23" message="#[payload]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</sub-flow>
+	<sub-flow name="put-veiculos" doc:id="bfb2fe43-1276-43f2-b680-f5d97ae8d6e8" >
+		<logger level="INFO" doc:name="Logger-put-veiculos-entrada" doc:id="c8619833-cd15-4855-a53e-983526adaa32" message='#["******************************* PUT VEICULOS NO BANDO DE DADOS SQL LOCAL - ENTRADA *******************************"]' />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	(valor: payload.Valor) if (payload.Valor?),&#10;	(codigoModelo: payload.CodigoModelo) if (payload.CodigoModelo?),&#10;	(nomeModelo: payload.NomeModelo) if (payload.NomeModelo?),&#10;	(anoModelo: payload.AnoModelo) if (payload.AnoModelo?),&#10;	(combustivel: payload.Combustivel) if (payload.Combustivel?),&#10;	(codigoFipe: payload.CodigoFipe) if (payload.CodigoFipe?),&#10;	(mesReferencia: payload.MesReferencia) if (payload.MesReferencia?),&#10;	(siglaCombustivel: payload.SiglaCombustivel) if (payload.SiglaCombustivel?),&#10;	codigoFipe: vars.codigoFipe,&#10;	marca: vars.marca&#10;}]" doc:name="inputParams" doc:id="1c832c98-5e5d-44c4-abcd-e0504f9607c0" variableName="inputParams" />
+		<set-payload value='#[%dw 2.0&#10;var valor = if(payload.Valor != null) "Valor = :valor," else ""&#10;var marca = if(payload.Marca != null) "Marca = :marca," else ""&#10;var codigoModelo = if(payload.CodigoModelo != null)"CodigoModelo = :codigoModelo," else ""&#10;var nomeModelo = if(payload.NomeModelo != null)"NomeModelo = :nomeModelo," else ""&#10;var anoModelo = if(payload.AnoModelo != null)"AnoModelo = :anoModelo," else ""&#10;var combustivel = if(payload.Combustivel  != null)"Combustivel = :combustivel, " else ""&#10;var codigoFipe = if(payload.CodigoFipe != null)"CodigoFipe = codigoFipe," else ""&#10;var mesReferencia = if(payload.MesReferencia != null)"MesReferencia = :mesReferencia, " else ""&#10;var siglaCombustivel = if(payload.SiglaCombustivel != null)"SiglaCombustivel = :siglaCombustivel " else ""&#10;output text/plain&#10;---&#10;"UPDATE Veiculos SET &#10;$(valor) &#10;$(marca)&#10;$(codigoModelo)&#10;$(nomeModelo)&#10;$(anoModelo)&#10;$(combustivel)&#10;$(codigoFipe)&#10;$(mesReferencia)&#10;$(siglaCombustivel)&#10;WHERE CodigoFipe = :codigoFipe AND Marca = :marca;"]' doc:name="db-update-veiculo-sql" doc:id="568d5f0c-172d-4154-9735-cd461fb1db73" />
+		<try doc:name="Try" doc:id="9cf6f5c3-2d20-4229-8c1e-7986854c7aca">
+			<db:update doc:name="Update" doc:id="3a7865c6-c6fb-429f-ac88-3d070d07c18b" config-ref="MSSQL_Database_Config">
+				<db:sql ><![CDATA[#[payload]]]></db:sql>
+				<db:input-parameters ><![CDATA[#[vars.inputParams]]]></db:input-parameters>
+			</db:update>
+			<error-handler>
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b52f0126-9e7b-4302-9cf2-2fd216c9efea" type="ANY">
+					<ee:transform doc:name="db-error" doc:id="de62d808-2ed6-4943-85d6-b863dede6fcb">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ErrorType": error.errorType.identifier,
+	"ErrorDescription": error.description,
+	"EventID": correlationId,
+	("Custom": error.errorMessage.payload)
+	
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger-error-propagate" doc:id="ca77e98a-8e6d-4567-953c-3086bef83484" message="#[payload]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger-put-veiculo-saida" doc:id="3ab74a87-c4d9-4774-86ed-0745a3f37e72" message='#["******************************* PUT VEICULOS NO BANDO DE DADOS SQL LOCAL - SAIDA *******************************"]' />
+	</sub-flow>
+</mule>

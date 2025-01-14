@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="mgb-api1-sapi-main">
+        <http:listener config-ref="HTTP_Listener_mgb-api1-sapp-config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="mgb-api1-sapi-config" />
+        <error-handler ref="global-error_handler" />
+    </flow>
+    <flow name="mgb-api1-sapi-console">
+        <http:listener config-ref="HTTP_Listener_mgb-api1-sapp-config" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="mgb-api1-sapi-config" />
+        <error-handler ref="global-error_handler" />
+    </flow>
+    <flow name="get:\api-health:mgb-api1-sapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  layer: "system",
+  status: "OnLine",
+  data: "2024-11-25T17:27:17Z"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <error-handler ref="global-error_handler" />
+    </flow>
+    <flow name="get:\veiculos\carga-inicial:mgb-api1-sapi-config">
+        <flow-ref doc:name="get-marcas-carga-inicial" doc:id="081efd79-066b-4b5e-8183-0997c2b4f1a6" name="get-marcas-carga-inicial" />
+		<error-handler ref="global-error_handler" />
+    </flow>
+    <flow name="get:\veiculos:mgb-api1-sapi-config">
+        <flow-ref doc:name="get-marcas-db" doc:id="97fba3d2-3f4b-41c5-91d9-66fd51b11926" name="get-marcas-db" />
+		<error-handler ref="global-error_handler" />
+    </flow>
+    <flow name="put:\veiculos\(codigo):application\json:mgb-api1-sapi-config">
+        <ee:transform doc:name="Transform Message">
+            <ee:variables>
+				<ee:set-variable variableName="marca" ><![CDATA[%dw 2.0
+output application/json
+---
+"Acura"]]></ee:set-variable>
+				<ee:set-variable variableName="codigoFipe" ><![CDATA[attributes.uriParams.'codigo']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="put-veiculos" doc:id="90825846-c024-4fc3-96ea-a33250f35d05" name="put-veiculos" />
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Dados do veículo atualizados com sucesso"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<error-handler ref="global-error_handler" />
+    </flow>
+</mule>
