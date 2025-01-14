@@ -11,6 +11,7 @@ Realize a instalação do Docker para seguir com o download e implementação da
 
 # Instalando a imagem do RabbitMQ
 
+
 Passo 1: Utilize o comando abaixo para realizar o download da imagem do RabbitMQ no Docker.
 
     docker pull rabbitmq:3-management
@@ -24,6 +25,22 @@ Passo 3: Acesse o RabbitMQ Management através do navegador com o endereço: htt
 Passo 4: REalize o login no Rabbit Management com o usuario Guest
     User:  guest
     Pass:  guest
+
+Passo 5: Configurando RabbitMQ
+!Importante: Para funcionamento correto de testes locais.
+
+#### Criando a Excchange e a Queue
+No RabbitMQ crie uma exchange de nome "ex-mgb-post-marcas" e uma Queue de nome "post.marcas"
+
+![image](https://github.com/user-attachments/assets/ada0a9b5-3915-4bd9-8915-adcb9fd2e389)
+
+#### Configurando o Binding
+Após criar a Exchange e a Queue, acesse cada uma delas e faça o Binding de roteamento.
+- Na Exchange apontando da exchange "ex-mgb-post-marcas" para a Queue "post.marcas" 
+- Na Queue apontando da queue "post.marcas"  para a exchange "ex-mgb-post-marcas"  
+
+![image](https://github.com/user-attachments/assets/1f494535-8005-4bb5-8017-e921a3fee586)
+
 
 # Instalando a imagem do Microsoft SQL Server 2022
 
