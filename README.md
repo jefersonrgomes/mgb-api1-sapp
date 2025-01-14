@@ -25,7 +25,7 @@ Passo 4: REalize o login no Rabbit Management com o usuario Guest
 
 Passo 5: Configurando RabbitMQ
 
-!Importante: Para funcionamento correto de testes locais.
+!Importante: Para funcionamento correto de testes locais, é necessario que as imagens dos containers tenham sido criadas com os valores apresentados acima, pois o Mulesfot esta com as properties configuradas para estes valores.
 
 #### Criando a Excchange e a Queue
 No RabbitMQ crie uma exchange de nome "ex-mgb-post-marcas" e uma Queue de nome "post.marcas"
