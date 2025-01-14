@@ -1,4 +1,4 @@
-# Magnum Bank Chalenge API1 - # mgb-api1-sapp
+# Magnum Bank Chalenge API1 - mgb-api1-sapp
 
 ### TECNOLOGIAS UTILIZADAS: MuleSoft, Docker, Docker-Compose, SQL-Server, RabbitMQ
 
