@@ -87,7 +87,22 @@ O endpoint "/carga-inicial" é responsavel por realizar a carga inicial dos dado
 ✅ 1.5 Implemente a lógica na API-2 para salvar no banco de dados “SQL” as informações de "código", "marca" e "modelo" dos veículos encontrados no serviço da FIPE.
 
 ### Codigo Mulesoft
+Foram criados 4 recursos: 
 
+- api-health: retornar a saude da api
+- carga-inicial: Cria/recria a tabela no banco e faz as chamadas na API Fipe ao final salvar os dados no banco de dados SQL.
+- buscar-marcas: Busca os veiculos no banco de dados.
+- put-veiculo: Atualiza dados de veiculos no banco de dados. 
+
+![image](https://github.com/user-attachments/assets/430c18a3-c6a4-4e5b-bbed-ed9f11ec2a42)
+
+![image](https://github.com/user-attachments/assets/7cad008e-c025-4f60-bb98-70b9df0955b4)
+
+![image](https://github.com/user-attachments/assets/79e6d0f0-ed46-4dec-bb8d-7378078b8cb1)
+
+![image](https://github.com/user-attachments/assets/20a82224-c100-4da8-96e3-0315e2e7e5fa)
+
+![image](https://github.com/user-attachments/assets/ad08131f-bef6-4a31-98fe-bf1fc6ddf304)
 
 
 ### Curl:
