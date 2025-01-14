@@ -1,4 +1,4 @@
-# Magnum Bank Chalenge API1 - mgb-api1-sapp
+[API FIPE.postman_collection.json](https://github.com/user-attachments/files/18415680/API.FIPE.postman_collection.json)# Magnum Bank Chalenge API1 - mgb-api1-sapp
 
 ### TECNOLOGIAS UTILIZADAS: MuleSoft, Docker, Docker-Compose, SQL-Server, RabbitMQ
 
@@ -71,11 +71,13 @@ Este teste avalia suas habilidades em
 - gerenciar dados em banco SQL.
 
 O objetivo é criar soluções eficientes e bem estruturadas para um cenário de integração com o serviço FIPE.
+[Uploading API FIPE.postman_collection.json…]()
 
 ---
 
 ✅ 1.1 Crie um serviço REST na API-1 para acionar a “carga inicial” dos dados de veículos.
-
+O endpoint "/carga-inicial" é responsavel por realizar a carga inicial dos dados dos veiculos, voce pode baixar e importar a Collection mgb-api-sapi no Postman através do link abaixo.
+[mgb-api1-sapi.postman_collection.zip](https://github.com/user-attachments/files/18415685/mgb-api1-sapi.postman_collection.zip)
 
 ✅ 1.2 Implemente a lógica na API-1 para buscar as “marcas” no serviço da FIPE
 
